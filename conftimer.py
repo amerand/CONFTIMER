@@ -1,21 +1,24 @@
-# Add your Python code here. E.g.
 from microbit import *
 import neopixel
 import math
 
 N = 24 # number of neopixels
-b = 1
-# brightness (0->255)
+b = 1 # initial brightness level
+# -- actual 8-bit brightness (0->255), non-linear conversion
 B = lambda : int(255*(b/10.)**1.5)
+L = 10 # initial countdown length in minutes
 
+# -- initialise neopixel array, set to dark
 np = neopixel.NeoPixel(pin0, N)
 for i in range(N):
     np[i] = (0,0,0)
 np.show()
-L = 10 # length in minutes
+
+# -- initial mode: set brightness
 mode = 'setbri'
+
 # -- 5x3 digits:
-num53 = {0:'111101101101111',
+num53 = {0:'010101101101010',
          1:'010110010010111',
          2:'110001011100111',
          3:'110001110001110',
@@ -31,12 +34,15 @@ num52 = {0:'1111111111',
          3:'1101100111',
          4:'1011110101',
          5:'1110110111',
-         6:'1010111111',
+         6:'0110111101',
          7:'1101011010',
          8:'1111001111',
-         9:'1111110111'}
+         9:'1111110110'}
 
 def int_to_55(n):
+    """
+    write a number in 0-99 to a 5x5 image to be displayed by the microbit LED array
+    """
     res = ''
     for i in range(5):
         if n>9:
@@ -53,9 +59,10 @@ def int_to_55(n):
             res += ':'
     return Image(res.replace('1','9'))
 
+# -- main loop
 while True:
     if mode == 'setbri':
-        # -- set brightness
+        # == set brightness ================
         for i in range(N):
             np[i] = (B(),B(),B())
         np.show()
@@ -71,6 +78,7 @@ while True:
             b = max(b-1, 0)
         display.show(int_to_55(b))
     elif mode=='running':
+        # == count down time =================
         # -- elapsed time, in minutes
         t = (running_time() - t0)/60000.0
         remaining = L-t # in minutes
@@ -78,18 +86,21 @@ while True:
         display.show(int_to_55(int(remaining)))
         # -- global color
         if remaining <= min(2, 0.25*L): 
+            # -- little time remaining! give visual cue
             x = 0.7 + 0.3*math.sin(2*3.1415*(running_time() - t0)/3000.)
-            c = (int(B()*x), int(0.5*x*B()), 0) # pulsing orange 
+            c = (int(B()*x), int(0.5*x*B()), 0) # progress bar color
             if b==0:
-                s = (int(20*x), 0, 0)            
+                s = (int(20*x), 0, 0) # seconds' hand color
             else:
-                s = (0, B(), B())
+                s = (0, B(), B()) # seconds' hand color
         else:
+            # -- normal progress
             c = (0,0,B()) # progress bar color
             if b==0:
-                s = (0, 10, 20)
+                s = (0, 10, 20) # seconds' hand color
             else:
-                s = (B(), int(0.8*B()), 0) # second hand color
+                s = (B(), int(0.8*B()), 0) # second's hand color
+        # -- set neopixels array
         for i in range(N):
             if i/N*L <= t:
                np[i] = c
@@ -105,6 +116,7 @@ while True:
             t0 = running_time() # in ms
         if button_a.is_pressed() or button_b.is_pressed():
             mode = 'settim' # stop and cancel
+            # -- make a little animation with neopixels
             for i in range(N):
                 np[i] = (0,0,0)
             np.show()
@@ -117,22 +129,23 @@ while True:
             np.show()
     elif mode=='finished':
         # -- finishing screen
-        j = (running_time() - t0)/1000.
+        j = (running_time() - t0)/1000. # additional time im seconds
+        # -- show blinking neopixel array
         for i in range(N):
             if (i+int(j))%2 == 0:
                 np[i] = (B(),0,0)
             else:
                 np[i] = (0,0,0)
+        # -- show seconds' hand 
         np[int(N*((j/60.)%1))] = (0,0,B())
-        # -- additional time in seconds
         if j%1>0.5:
             # -- show additional time in minutes
             display.show(int_to_55(min(int(j/60.), 99)))
         else:
             display.clear()
             if b==0:
+                # -- show the seconds' hand in case there is no progress bar
                 np[int(N*((j/60.)%1))] = (20,0,0)
-        
         np.show()
         if button_a.is_pressed() or button_b.is_pressed():
             # -- cancel finishing screen go back to setup
@@ -144,11 +157,14 @@ while True:
         display.show(int_to_55(L))
         # -- standby / setup
         if button_a.is_pressed() and button_b.is_pressed():
+            # -- A+B starts the counter
             mode = 'running'
             t0 = running_time() # in ms
             sleep(500)
         elif button_a.is_pressed():
+            # -- decrement the decount time
             L = max(1, L-1)
         elif button_b.is_pressed():
+            # -- increment the decount time
             L = min(99,L+1)
     sleep(200)
