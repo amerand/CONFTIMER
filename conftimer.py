@@ -1,3 +1,7 @@
+
+# Conference timer for micro:bit + kitronik Halo neopixels ring
+# https://github.com/amerand/CONFTIMER
+
 from microbit import *
 import neopixel
 import math
@@ -34,7 +38,7 @@ num52 = {0:'1111111111',
          3:'1101100111',
          4:'1011110101',
          5:'1110110111',
-         6:'0110111101',
+         6:'0110111111',
          7:'1101011010',
          8:'1111001111',
          9:'1111110110'}
