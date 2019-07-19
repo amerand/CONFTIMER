@@ -1,4 +1,3 @@
-
 # Conference timer for micro:bit + kitronik Halo neopixels ring
 # https://github.com/amerand/CONFTIMER
 
@@ -6,42 +5,43 @@ from microbit import *
 import neopixel
 import math
 
-N = 24 # number of neopixels
-b = 1 # initial brightness level
+N = 24  # number of neopixels
+b = 1  # initial brightness level
 # -- actual 8-bit brightness (0->255), non-linear conversion
 B = lambda : int(255*(b/10.)**1.5)
-L = 10 # initial countdown length in minutes
+L = 10  # initial countdown length in minutes
 
 # -- initialise neopixel array, set to dark
 np = neopixel.NeoPixel(pin0, N)
 for i in range(N):
-    np[i] = (0,0,0)
+    np[i] = (0, 0, 0)
 np.show()
 
 # -- initial mode: set brightness
 mode = 'setbri'
 
-# -- 5x3 digits:
-num53 = {0:'010101101101010',
-         1:'010110010010111',
-         2:'110001011100111',
-         3:'110001110001110',
-         4:'101101111001001',
-         5:'111100110001110',
-         6:'011100110101011',
-         7:'111001010100100',
-         8:'011101111101110',
-         9:'110101011001110'}
-num52 = {0:'1111111111',
-         1:'1010101010',
-         2:'1101111011',
-         3:'1101100111',
-         4:'1011110101',
-         5:'1110110111',
-         6:'0110111111',
-         7:'1101011010',
-         8:'1111001111',
-         9:'1111110110'}
+# -- 5x3pix digits:
+num53 = {0: '010101101101010',
+         1: '010110010010111',
+         2: '110001011100111',
+         3: '110001110001110',
+         4: '101101111001001',
+         5: '111100110001110',
+         6: '011100110101011',
+         7: '111001010100100',
+         8: '011101111101110',
+         9: '110101011001110'}
+# -- 5x2pix digits:  
+num52 = {0: '1111111111',
+         1: '1010101010',
+         2: '1101111011',
+         3: '1101100111',
+         4: '1011110101',
+         5: '1110110111',
+         6: '0110111111',
+         7: '1101011010',
+         8: '1111001111',
+         9: '1111110110'}
 
 def int_to_55(n):
     """
@@ -106,10 +106,10 @@ while True:
                 s = (B(), int(0.8*B()), 0) # second's hand color
         # -- set neopixels array
         for i in range(N):
-            if i/N*L <= t:
-               np[i] = c
+            if i*L/N < t:
+                np[i] = c # minutes
             else:
-               np[i] = (0,0,0) 
+                np[i] = (0,0,0) 
         # -- seconds' hand
         np[int(N*(t%1))] = s   
         np.show()  
